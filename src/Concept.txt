@@ -1,0 +1,32 @@
+-game
+-simulation
+-realistic: people, needs, rioting, catastrophes
+
+graphics:
+	-top-down
+	-every field has is own color
+	!!! what to do about the only-16-colors problem? !!!
+	-top line shows basic stats
+	-games gonna be in a "frame"
+	
+	-menu color theme:
+		!!! which theme? gray/orange or gray/cyan? !!!
+
+game:
+	-world is a flat country
+	-if player's got no money left: game ends
+	-different difficulties
+		-difficulty changes number of riots, how fast catastrophes appear
+		- Easy, Normal, Hard, Impossible
+	-different civilisations
+		!!! player chosen or random? !!!
+		-Asian, Arabic, African, European, American civilisations
+		-different pros and cons, like speed of building, speed of gathering resources, how high taxes they give
+
+behind-the-scenes:
+	-use OOP -> write own 32log
+	-not in one file, use many files and a loading and constructing mechanism
+	-every file is going to be an API
+	-every type of building has an id from 1 -> 16
+
+!!! plugins? !!! 
