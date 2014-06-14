@@ -1,0 +1,31 @@
+class "Screen" {}
+
+function Screen:draw() end
+function Screen:update(event) end
+
+function Screen.setColor(fg, bg)
+	if fg then
+		term.setTextColor(fg)
+	end
+	if bg then
+		term.setBackgroundColor(bg)
+	end
+end
+
+function Screen.clear(fg, bg)
+	Screen.setColor(fg, bg)
+	term.clear()
+	term.setCursorPos(1, 1)
+end
+
+function Screen.clearRect(sX, sY, eX, eY, fg, bg)
+	Screen.setColor(fg, bg)
+	for a = sY, eY do
+		term.setCursorPos(sX, a)
+		term.write(" ":rep(eY-sY+1))
+	end
+end
+
+function Screen.themedclear()
+	Screen.clear(Villages.config.colortheme.text, Villages.config.colortheme.bg)
+end

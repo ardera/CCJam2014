@@ -5,7 +5,8 @@
 graphics:
 	-top-down
 	-every field has is own color
-	!!! what to do about the only-16-colors problem? !!!
+	-what to do about the only-16-colors problem?
+		-solution: every field has a color AND a character, so maybe "a" and blue
 	-top line shows basic stats
 	-games gonna be in a "frame"
 	

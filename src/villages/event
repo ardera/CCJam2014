@@ -1,0 +1,37 @@
+class "Event" {
+	MouseClick = "mouse_click",
+	Key = "key",
+	Char = "char"
+}
+
+function Event.pull(filter)
+	return Event(os.pullEvent(filter))
+end
+
+function Event.queue(event)
+	os.queueEvent(unpack(event:getAll()))
+end
+
+function Event:init(...)
+	self.fullevent = {...}
+	self.name = fullevent[1]
+	local det = {...}
+	table.remove(det, 1)
+	self.details = det
+end
+
+function Event:getName()
+	return self.name
+end
+
+function Event:getDetails()
+	return self.details
+end
+
+function Event:getAll()
+	return self.fullevent
+end
+
+function Event:is(name)
+	return self.name == name
+end

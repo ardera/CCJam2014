@@ -1,0 +1,4 @@
+function clearyield()
+	os.queueEvent("clearyield")
+	os.pullEvent("clearyield")
+end

@@ -1,0 +1,18 @@
+class "Game" {}
+
+function Game:load()
+	self.loaded = true
+end
+
+function Game:update(ev)
+
+end
+
+function Game:draw()
+
+end
+
+function Game:init()
+	self.loaded = false
+	self.world = World()
+end

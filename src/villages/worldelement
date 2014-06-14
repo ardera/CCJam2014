@@ -1,0 +1,15 @@
+class "WorldElement" {
+	color = colors.
+}
+
+function WorldElement:tick()
+
+end
+
+function WorldElement:getScreen()
+
+end
+
+function WorldElement:init()
+
+end

@@ -1,0 +1,66 @@
+local termargs = {...}
+local gameargs = {...}
+local prefixpath = "/"
+local executionpath = "/villages/"
+
+if termargs[1] then
+	executionpath = termargs[1]
+	table.remove(gameargs, 1)
+end
+
+-- utils
+
+function require(fname, ...)
+	local varargs = {...}
+	local p = fs.combine(prefixpath, fname)
+	local ret = {}
+	if fs.exists(p) and not fs.isDir(p) then
+		local r = fs.open(p, "r")
+		local s = r.readAll()
+		r.close()
+		local f, err = loadstring(s, p)
+		if not f then
+			error("Unable to require file: \""..p.."\" error: \""..err.."\"", 2)
+		end
+		local ok, err = pcall(function() ret = {f(unpack(varargs))} end)
+		if not ok then
+			error("Unable to require file: \""..p.."\" error: \""..err.."\"", 2)
+		end
+	else
+		error("Unable to require file: \""..p.."\" error: \"could not find file\"", 2)
+	end
+	return unpack(ret)
+end
+
+function setPrefix(p)
+	prefixpath = p
+end
+
+
+-- real execution
+
+setPrefix(executionpath)
+
+require "not32log"
+
+require "util"
+require "main"
+require "screen"
+require "screenmenue"
+require "screengame"
+require "event"
+require "game"
+require "world"
+
+local m = Villages()
+local ok, err = pcall(function() m:main(gameargs) end)
+
+if not ok then
+	print("")
+	print("Seems like Villages crashed.")
+	print("Error Message: ", err)
+else
+	print("Thanks for trying out Villages!")
+end
+
+clearclasses()

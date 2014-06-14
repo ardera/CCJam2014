@@ -1,0 +1,14 @@
+class "ScreenMenue" : extends "Screen" {}
+
+function ScreenMenue:draw()
+	Screen.themedclear()
+	
+end
+
+function ScreenMenu:update(ev)
+	if ev.is(Event.MouseClick) then
+		
+	end
+	
+	Villages:setScreen(ScreenGame())
+end

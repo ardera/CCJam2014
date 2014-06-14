@@ -1,0 +1,29 @@
+class "Villages" {
+	config = {
+		colortheme = {
+			text = colors.orange,
+			bg = colors.gray
+		}
+	},
+	currentscreen = {},
+	instance = {}
+}
+
+function Villages:draw()
+	self.currentscreen:draw()
+end
+
+function Villages:update(ev)
+	self.currentscreen:update(ev)
+end
+
+function Villages:main(gameargs)
+	print("asdf")
+	
+	Villages.instance = self
+	self.currentscreen = ScreenMenue()
+end
+
+function Villages:setScreen(s)
+	self.currentscreen = s
+end

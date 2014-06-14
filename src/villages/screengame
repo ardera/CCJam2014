@@ -1,0 +1,16 @@
+class "ScreenGame" : extend "Screen" {}
+
+function ScreenGame:draw()
+	self.game:draw()
+end
+
+function ScreenGame:update(ev)
+	if not self.game.loaded then
+		self.game:load()
+	end
+	self.game:update(ev)
+end
+
+function ScreenGame:init()
+	self.game = Game()
+end

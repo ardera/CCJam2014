@@ -1,0 +1,75 @@
+-- the "Windows Aktivieren" thing: windows has big issues activating this computer. It broke one time, and me + windows were
+-- unable to restore, and I had to install everything new. I have a legit copy of windows, and I'll reinstall it somewhen soon.
+
+local toclear = {}
+
+function class(name)
+	local cl = {__parent = "", __members = {}, __name = name}
+	local cl_mt = {
+		__call = function(this, ...)
+			-- new instance
+			-- call constructor
+			
+			local instance = {__name = cl.__name, __parent = cl.__parent}
+			
+			local function applyClass(classenv)
+				if _G[classenv.__parent] then
+					applyClass(_G[classenv.__parent])
+				end
+				for a, b in pairs(classenv.__members) do
+					if a ~= "__parent" and a ~= "__members" and a ~= "__name" then
+						instance[a] = b
+					end
+				end
+			end
+						-- track down parents
+			applyClass(cl)
+			if instance.init then
+				instance:init(...)
+			end
+			return instance
+		end,
+		__newindex = function(t, k, v)
+			t.__members[k] = v
+		end,
+		__index = function(t, k)
+			if t.__members[k] then
+				return t.__members[k]
+			end
+		end
+	}
+	
+	setmetatable(cl, cl_mt)
+	
+	local def_mt = {
+		__call = function(this, arg1)
+			-- define the class / publish it
+			if _G[cl.__parent] then
+				cl.__members = setmetatable(arg1, {__index = _G[cl.__parent].__members})
+			else
+				cl.__members = arg1
+			end
+			_G[name] = cl
+			toclear[#toclear + 1] = name
+		end
+	}
+	
+	local definer = {
+		extend = function(this, parent)
+			cl.__parent = parent
+			return setmetatable({}, def_mt)
+		end
+	}
+	
+	setmetatable(definer, def_mt)
+	return definer
+end
+
+function clearclasses()
+	for a, b in pairs(toclear) do
+		_G[b] = nil
+	end
+end
+
+--class "Test" {Hey = "Hey"}
+--class "SpecificTest" : extend "Test" {}

@@ -1,0 +1,34 @@
+class "World" {}
+-- a 2d world
+
+function World:addWorldElement(x, y, e)
+	self.w[x][y] = e
+end
+
+function World:getWorldElement(x, y)
+	return self.w[x][y]
+end
+
+function World:tickWorldElement(x, y, ...)
+	self.w[x][y]:tick(...)					-- not really needed, maybe later
+end
+
+function World:init()
+	local w = {}
+	self.w = w
+	
+	-- to avoid checking if a x row is existent first like:
+	-- if w[x] and w[x][y] then
+	
+	local mt = 
+	{__index = function(world, x)
+		return setmetatable({}, 
+		{__index = function(worldx, y)
+			return nil
+		end,
+		__newindex = function(worldx, y, v) 
+			w[x] = {[y] = v}
+		end}
+	end}
+	setmetatable(w, mt)
+end
