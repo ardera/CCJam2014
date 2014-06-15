@@ -22,10 +22,30 @@ function Screen.clearRect(sX, sY, eX, eY, fg, bg)
 	Screen.setColor(fg, bg)
 	for a = sY, eY do
 		term.setCursorPos(sX, a)
-		term.write(" ":rep(eY-sY+1))
+		term.write((" "):rep(eY-sY+1))
 	end
+end
+
+function Screen.combine(...)
+	return ScreenCombined(...)
 end
 
 function Screen.themedclear()
 	Screen.clear(Villages.config.colortheme.text, Villages.config.colortheme.bg)
+end
+
+class "ScreenTest" : extend "Screen" {}
+
+function ScreenTest:draw() Screen.clearRect(1, 1, 5, 5, nil, colors.white) end
+
+class "ScreenCombined" : extend "Screen" {}
+
+function ScreenCombined:init(...)
+	self.screens = {...}
+end
+
+function ScreenCombined:draw()
+	for a = 1, #self.screens do
+		self.screens[a]:draw()
+	end
 end

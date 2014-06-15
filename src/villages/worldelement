@@ -1,15 +1,51 @@
 class "WorldElement" {
-	color = colors.
+	color = colors.white,
+	char = " ",
+	mouseaction = Screen(),
+	hasaction = false,
+	ticking = false
 }
 
 function WorldElement:tick()
-
 end
 
-function WorldElement:getScreen()
-
+function WorldElement:getColor()
+	return self.color
 end
 
-function WorldElement:init()
-
+function WorldElement:getChar()
+	return self.char
 end
+
+function WorldElement:onClick()
+	if self.hasaction then
+		return self.mouseaction
+	else
+		return false
+	end
+end
+
+function WorldElement:hasMouseAction()
+	return self.hasaction
+end
+
+function WorldElement:isTicking()
+	return self.ticking
+end
+
+class "WorldElementTerrain" : extend "WorldElement" {
+	color = colors.brown,
+	char = " ",
+	hasaction = true,
+	mouseaction = ScreenTest()
+}
+
+class "WorldElementWood" : extend "WorldElement" {
+	color = colors.brown,
+	char = "I"
+}
+
+class "WorldElementNothing" : extend "WorldElement" {
+	color = colors.white,
+	char = " "
+}

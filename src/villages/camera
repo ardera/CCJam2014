@@ -1,0 +1,33 @@
+class "Camera" {}
+
+function Camera:init(x, y, z)
+	self.x = x or 0
+	self.y = y or 0
+	self.z = z or 5
+	local w, h = term.getSize()
+	self.rangeX = w / 2
+	self.rangeY = h / 2
+end
+
+function Camera:drawWorldelement(e, x, y)
+	term.setCursorPos(x, y)
+	term.setBackgroundColor(e:getColor())
+	term.setTextColor(colors.gray)
+	term.write(e:getChar())
+end
+
+function Camera:renderWorld(w, offsetX, offsetY)
+	for x = self.x - self.rangeX, self.x + self.rangeX do
+		local screenX = self.rangeX + x - self.x + 1
+		for y = self.y - self.rangeY, self.y + self.rangeY do
+			local screenY = self.rangeY + y - self.y + 1
+			self:drawWorldelement(w:getWorldElement(x, y), screenX+(offsetX or 0), screenY+(offsetY or 0))
+		end
+	end
+end
+
+function Camera:drawOverlay(player)
+	if player:hasOverlay() then
+		player:getOverlay():draw()
+	end
+end

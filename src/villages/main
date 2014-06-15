@@ -6,7 +6,8 @@ class "Villages" {
 		}
 	},
 	currentscreen = {},
-	instance = {}
+	instance = {},
+	fps = 20					-- more isn't possible
 }
 
 function Villages:draw()
@@ -18,10 +19,36 @@ function Villages:update(ev)
 end
 
 function Villages:main(gameargs)
-	print("asdf")
+	logprint("asdf")
 	
 	Villages.instance = self
 	self.currentscreen = ScreenMenue()
+	self.running = true
+	
+	local drawTimer = os.startTimer(1 / self.fps)
+	local drawTimerStart = os.clock()
+	
+	self.lastDraw = 0
+	self.lastUpdate = 0
+	
+	self:update(Event("screen_initialization"))
+	
+	while self.running do
+		local ev = Event(os.pullEvent())
+		if ev:is(Event.Timer) and ev:getDetail(1) == drawTimer then
+			self:draw()
+			self.lastDraw = os.clock()
+			drawTimer = os.startTimer(1 / self.fps)
+			drawTimerStart = os.clock()
+		else
+			self:update(ev)
+			self.lastUpdate = os.clock()
+		end
+	end
+end
+
+function Villages:exit()
+	self.running = false
 end
 
 function Villages:setScreen(s)

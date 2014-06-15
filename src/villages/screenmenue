@@ -1,14 +1,10 @@
-class "ScreenMenue" : extends "Screen" {}
+class "ScreenMenue" : extend "Screen" {}
 
 function ScreenMenue:draw()
 	Screen.themedclear()
 	
 end
 
-function ScreenMenu:update(ev)
-	if ev.is(Event.MouseClick) then
-		
-	end
-	
-	Villages:setScreen(ScreenGame())
+function ScreenMenue:update(ev)
+	Villages.instance:setScreen(ScreenGame())
 end

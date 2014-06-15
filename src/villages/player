@@ -1,0 +1,104 @@
+class "Player" {}
+
+function Player:setMoney(m)
+	self.money = m
+end
+
+function Player:getMoney()
+	return self.money
+end
+
+function Player:update(ev)
+	if ev:is(Event.MouseClick) then
+		local but = ev:getDetail(1)
+		local x = ev:getDetail(2)
+		local y = ev:getDetail(3)
+		local cam = self.game.camera
+		local world = self.game.world
+		local worldX = x + cam.x - cam.rangeX
+		local worldY = y + cam.y - cam.rangeY
+		local e = world:getWorldElement(worldX, worldY)
+		if e:hasMouseAction() and not self.hasoverlay and not self.placementElement.__name == "WorldElementDestroy" then
+			self.hasoverlay = true
+			self.overlay = e:onClick()
+			self.combinedoverlay = Screen.combine(self.playeroverlay, e:onClick())
+		elseif self.hasoverlay then
+			self.hasoverlay = false
+			self.overlay = Screen()
+			self.combinedoverlay = self.playeroverlay
+		elseif not self.hasoverlay and not self.placing then
+			self:setPlacementElement(WorldElementNothing())
+			self.placing = true
+			self.placementCacheStartX, self.placementCacheStartY = math.floor(worldX), math.floor(worldY)
+		elseif self.placing then
+			self.placing = false
+			self.placementCacheEndX, self.placementCacheEndY = math.ceil(worldX), math.ceil(worldY)
+			self:place()
+		end
+	end
+end
+
+function Player:getOverlay()
+	return self.combinedoverlay
+end
+
+function Player:hasOverlay()
+	return self.hasoverlay
+end
+
+function Player:isPlacing()
+	return self.placing
+end
+
+function Player:getPlacementCache()
+	return self.placementCacheStartX, self.placementCacheStartY, self.placementCacheEndX, self.placementCacheEndY, self.placementElement
+end
+
+function Player:setPlacementElement(e)
+	self.placementElement = e
+end
+
+function Player:place()
+	log("Placing: ", self.placementElement.__name)
+	local logged = false
+	for x = math.min(self.placementCacheStartX, self.placementCacheEndX), math.max(self.placementCacheStartX, self.placementCacheEndX) do
+		for y = math.min(self.placementCacheStartY, self.placementCacheEndY), math.max(self.placementCacheStartY, self.placementCacheEndY) do
+			e = self.game.world:getWorldElement(x, y)
+			if not logged then
+				log("elementnow: ", e.__name)
+			end
+			self.game.world:setWorldElement(x, y, self.placementElement)
+			if not logged then
+				log("elementafter: ", self.game.world:getWorldElement(x, y).__name)
+				logged = true
+			end
+		end
+	end
+	self.placementCacheStartX, self.placementCacheStartY, self.placementCacheEndX, self.placementCacheEndY, self.placing = 0, 0, 0, 0, false
+end
+
+function Player:init(m, g)
+	self.money = m
+	self.placementCacheStartX = 0
+	self.placementCacheStartY = 0
+	self.placementCacheEndX = 0
+	self.placementCacheEndY = 0
+	self.placementElement = WorldElement()
+	self.placing = false
+	self.game = g
+	self.overlay = Screen()
+	self.hasoverlay = false
+	
+	self.playeroverlay = ScreenPlayerOverlay(self)
+	self.combinedoverlay = self.playeroverlay
+end
+
+class "ScreenPlayerOverlay" : extend "Screen" {}
+
+function ScreenPlayerOverlay:draw()
+	--TODO: print stats, building selection here
+end
+
+function ScreenPlayerOverlay:init(p)
+	self.player = p
+end

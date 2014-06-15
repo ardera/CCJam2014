@@ -1,0 +1,13 @@
+class "WorldGenerator" {}
+
+function WorldGenerator:generatePoint(x, y, w)
+	w:setWorldElement(x, y, WorldElementTerrain())
+end
+
+function WorldGenerator:generateRect(sX, sY, eX, eY, w)
+	for x = sX, eX do
+		for y = sY, eY do
+			self:generatePoint(x, y, w)
+		end
+	end
+end

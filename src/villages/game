@@ -5,14 +5,22 @@ function Game:load()
 end
 
 function Game:update(ev)
-
+	self.player:update(ev, self)
 end
 
 function Game:draw()
-
+	self.camera:renderWorld(self.world, 0, 1)
+	self.camera:drawOverlay(self.player)
+	term.setCursorPos(1, 1)
+	term.setBackgroundColor(colors.gray)
+	term.setTextColor(colors.cyan)
+	term.clearLine()
+	term.write("Money: "..self.player.money)
 end
 
 function Game:init()
 	self.loaded = false
 	self.world = World()
+	self.camera = Camera(0, 0, 5)
+	self.player = Player(1000, self)
 end

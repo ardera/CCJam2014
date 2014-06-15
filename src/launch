@@ -51,14 +51,23 @@ require "screengame"
 require "event"
 require "game"
 require "world"
+require "worldelement"
+require "camera"
+require "worldgenerator"
+require "player"
 
 local m = Villages()
 local ok, err = pcall(function() m:main(gameargs) end)
 
+term.setBackgroundColor(colors.black)
+term.setTextColor(colors.white)
+term.clear()
+term.setCursorPos(1, 1)
+
 if not ok then
-	print("")
+	term.setTextColor(colors.orange)
 	print("Seems like Villages crashed.")
-	print("Error Message: ", err)
+	print("Error Message: \"", err, "\"")
 else
 	print("Thanks for trying out Villages!")
 end

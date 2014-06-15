@@ -1,7 +1,9 @@
 class "Event" {
 	MouseClick = "mouse_click",
 	Key = "key",
-	Char = "char"
+	Char = "char",
+	Timer = "timer",
+	ScreenInitialization = "screen_initialization"
 }
 
 function Event.pull(filter)
@@ -14,7 +16,7 @@ end
 
 function Event:init(...)
 	self.fullevent = {...}
-	self.name = fullevent[1]
+	self.name = self.fullevent[1]
 	local det = {...}
 	table.remove(det, 1)
 	self.details = det
@@ -34,4 +36,8 @@ end
 
 function Event:is(name)
 	return self.name == name
+end
+
+function Event:getDetail(n)
+	return self.details[n]
 end

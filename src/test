@@ -1,0 +1,11 @@
+os.loadAPI("villages/not32log")
+
+not32log.class "WorldElement" {color = colors.gray}
+function WorldElement:getColor()
+  return self.color
+end
+
+not32log.class "WorldElementTerrain" : extend "WorldElement" {color = colors.gray}
+
+local t = WorldElementTerrain()
+print(t:getColor())

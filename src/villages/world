@@ -1,7 +1,16 @@
 class "World" {}
 -- a 2d world
 
-function World:addWorldElement(x, y, e)
+function World:updateTicking(x, y)
+	if self.w[x][y]:isTicking() then
+		self.tickindices[x][y] = self.tickindices[x][y] or #self.ticklist + 1
+	else
+		self.ticklist[self.tickindices[x][y]] = nil
+		self.tickindices[x][y] = nil
+	end
+end
+
+function World:setWorldElement(x, y, e)
 	self.w[x][y] = e
 end
 
@@ -13,22 +22,65 @@ function World:tickWorldElement(x, y, ...)
 	self.w[x][y]:tick(...)					-- not really needed, maybe later
 end
 
-function World:init()
+function World:setGenerator(g)
+	self.generator = g
+end
+
+function World:generatePoint(x, y)
+	self.generator:generatePoint(x, y, self)
+end
+
+function World:tick()
+	for a = 1, #self.ticklist do
+		if self.ticklist[a] then
+			self.ticklist[a]:tick()
+		end
+	end
+end
+
+function World:init(g)
 	local w = {}
 	self.w = w
 	
 	-- to avoid checking if a x row is existent first like:
 	-- if w[x] and w[x][y] then
 	
-	local mt = 
-	{__index = function(world, x)
-		return setmetatable({}, 
-		{__index = function(worldx, y)
-			return nil
-		end,
-		__newindex = function(worldx, y, v) 
-			w[x] = {[y] = v}
-		end}
-	end}
+	local mt=
+	{
+		__index = function(world, x)
+			return setmetatable({},
+			{
+				__index = function(worldx, y)
+					self:generatePoint(x, y)
+					return self.w[x][y]
+				end,
+				__newindex = function(worldx, y, v)
+					rawset(self.w, x, self.w[x] or {})
+					rawset(self.w[x], y, v)
+				end
+			})
+		end
+	}
 	setmetatable(w, mt)
+	self.generator = g or WorldGenerator()
+	
+	local mt2=
+	{
+		__index = function(tickindices, x)
+			return setmetatable({},
+			{
+				__index = function(tickindicesx, y)
+					return 0
+				end,
+				__newindex = function(tickindicesx, y, v)
+					rawset(self.tickindices, x, self.tickindices[x] or {})
+					rawset(self.tickindices[x], y, v)
+					self:updateTicking(x, y)
+				end
+			})
+		end
+	}
+	
+	self.ticklist = {}
+	self.tickindices = setmetatable({}, mt2)
 end

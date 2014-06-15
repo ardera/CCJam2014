@@ -1,4 +1,33 @@
+local debug = true
+
+local w = fs.open("log", "w")
+w.close()
+
 function clearyield()
 	os.queueEvent("clearyield")
 	os.pullEvent("clearyield")
+end
+
+function vts(...)
+	local str = ""
+	local varargs = {...}
+	for a = 1, #varargs do
+		str = str..tostring(varargs[a])
+	end
+	return str
+end
+
+function log(...)
+	if debug then
+		local w = fs.open("log", "a")
+		w.writeLine(vts(...))
+		w.close()
+	end
+end
+
+function logprint(...)
+	if debug then
+		log(...)
+		print(...)
+	end
 end
