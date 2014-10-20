@@ -1,23 +1,75 @@
-class "WorldElement" {
+class "WorldelementList" {elementsbcategory = {}, elementsbnumber = {}, categories = {}, instance = 0}
+function WorldelementList:add(e)
+	log("ElementcategoryNature = " .. tostring(ElementcategoryNature))
+	check(e, Worldelement)
+	if not WorldelementList.elementsbcategory[e.category] then
+		WorldelementList.elementsbcategory[e.category] = {}
+	end
+	WorldelementList.elementsbcategory[e.category][#WorldelementList.elementsbcategory[e.category] + 1] = e
+	WorldelementList.elementsbnumber[#WorldelementList.elementsbnumber + 1] = e
+	
+	for a = 1, #WorldelementList.categories do
+		if WorldelementList.categories[a] == e.category then
+			return
+		end
+	end
+	WorldelementList.categories[#WorldelementList.categories + 1] = e.category
+end
+
+function WorldelementList:get(cn)
+	check(e, "number", Elementcategory)
+	if type(cn) == "number" then
+		return WorldelementList.elementsbnumber[cn]
+	else
+		return WorldelementList.elementsbcategory[cn]
+	end
+end
+
+function WorldelementList:getAllByCategory()
+	return self.elementsbcategory
+end
+
+function WorldelementList:getAllByNumber()
+	return self.elementsbnumber
+end
+
+function WorldelementList:getCategories()
+	return WorldelementList.categories
+end
+
+function WorldelementList:addHardcodedElements()
+	self:add(WorldelementTerrain)
+	self:add(WorldelementWood)
+	self:add(WorldelementNothing)
+	self:add(WorldelementStone)
+end
+
+function WorldelementList:init()
+	WorldelementList.instance = self
+	self:addHardcodedElements()
+end
+
+class "Worldelement" {
 	color = colors.white,
 	char = " ",
 	mouseaction = Screen(),
 	hasaction = false,
-	ticking = false
+	ticking = false,
+	category = Elementcategory
 }
 
-function WorldElement:tick()
+function Worldelement:tick()
 end
 
-function WorldElement:getColor()
+function Worldelement:getColor()
 	return self.color
 end
 
-function WorldElement:getChar()
+function Worldelement:getChar()
 	return self.char
 end
 
-function WorldElement:onClick()
+function Worldelement:onClick()
 	if self.hasaction then
 		return self.mouseaction
 	else
@@ -25,27 +77,34 @@ function WorldElement:onClick()
 	end
 end
 
-function WorldElement:hasMouseAction()
+function Worldelement:hasMouseAction()
 	return self.hasaction
 end
 
-function WorldElement:isTicking()
+function Worldelement:isTicking()
 	return self.ticking
 end
 
-class "WorldElementTerrain" : extend "WorldElement" {
+class "WorldelementTerrain" : extend "Worldelement" {
 	color = colors.brown,
 	char = " ",
-	hasaction = true,
-	mouseaction = ScreenTest()
+	category = ElementcategoryNature
 }
 
-class "WorldElementWood" : extend "WorldElement" {
+class "WorldelementWood" : extend "Worldelement" {
 	color = colors.brown,
-	char = "I"
+	char = "I",
+	category = ElementcategoryNature
 }
 
-class "WorldElementNothing" : extend "WorldElement" {
+class "WorldelementNothing" : extend "Worldelement" {
 	color = colors.white,
-	char = " "
+	char = " ",
+	category = ElementcategoryNature
+}
+
+class "WorldelementStone" : extend "Worldelement" {
+	color = colors.gray,
+	char = " ",
+	category = ElementcategoryNature
 }

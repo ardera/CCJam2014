@@ -1,22 +1,56 @@
--- the "Windows Aktivieren" thing: windows has big issues activating this computer. It broke one time, and me + windows were
--- unable to restore, and I had to install everything new. I have a legit copy of windows, and I'll reinstall it somewhen soon.
-
 local toclear = {}
 
 function class(name)
-	local cl = {__parent = "", __members = {}, __name = name}
+	local cl = 0
+	cl = {__parent = "Object", __members = {}, __name = name, __origin = name, __originparent = "Object",
+	__relatedto = function(c)
+		local cur = cl
+		while cur.__originparent ~= c.__origin do
+			log("current: " .. tostring(cur))
+			cur = cur.__originparent
+			if cur == nil then
+				return false
+			end
+		end
+		return true
+	end}
 	local cl_mt = {
 		__call = function(this, ...)
 			-- new instance
 			-- call constructor
 			
-			local instance = {__name = cl.__name, __parent = cl.__parent}
+			local instance = {__name = cl.__name, __origin = cl.__name,
+			__cast = function(c)
+				if instance.__relatedto(c) then
+					instance.__name = c.__name
+				end
+			end, __instanceof = function(c)
+				if instance.__origin == c.__name then
+					return true
+				end
+				return false
+			end}
+			
+			setmetatable(instance, {__index = function(t, k)
+				if k == "__parent" then
+					if _G[instance.__name] then
+						return _G[instance.__name].__parent
+					end
+					return "Object"
+				elseif k == "__originparent" then
+					if _G[instance.__origin] then
+						return _G[instane.__origin].__parent
+					end
+					return "Object"
+				end
+			end})
+			
 			local function applyClass(classenv)
 				if _G[classenv.__parent] then
 					applyClass(_G[classenv.__parent])
 				end
 				for a, b in pairs(classenv.__members) do
-					if a ~= "__parent" and a ~= "__members" and a ~= "__name" then
+					if a ~= "__parent" and a ~= "__members" and a ~= "__name" and a ~= " __origin" and a ~= "__orginparent" then
 						instance[a] = b
 					end
 				end
@@ -56,6 +90,7 @@ function class(name)
 	local definer = {
 		extend = function(this, parent)
 			cl.__parent = parent
+			cl.__originparent = parent
 			return setmetatable({}, def_mt)
 		end
 	}
@@ -69,6 +104,27 @@ function clearclasses()
 		_G[b] = nil
 	end
 end
+
+function check(c, ...)
+	local args = {...}
+	local should = {}
+	for a = 1, #args do
+		if type(args[a]) == "table" and args[a].__origin then
+			should[#should + 1] = args[a].__origin
+		else
+			should[#should + 1] = tostring(args[a])
+		end
+		
+		if args[a] == type(c) then
+			return true
+		elseif type(args[a]) == "table" and args[a].__originparent and args[a].__origin and c.__relatedto(args[a]) then
+			return true
+		end
+	end
+	error("Wrong Argument Type: Is: " .. tostring((c or {}).__origin) .. " Should Be: " .. table.concat(should, " / "), 2)
+end
+
+
 
 --class "Test" {Hey = "Hey"}
 --class "SpecificTest" : extend "Test" {}

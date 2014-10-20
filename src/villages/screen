@@ -1,4 +1,7 @@
-class "Screen" {}
+class "Screen" {
+	w = ({term.getSize()})[1],
+	h = ({term.getSize()})[2]
+}
 
 function Screen:draw() end
 function Screen:update(event) end

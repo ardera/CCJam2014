@@ -10,12 +10,7 @@ end
 
 function Game:draw()
 	self.camera:renderWorld(self.world, 0, 1)
-	self.camera:drawOverlay(self.player)
-	term.setCursorPos(1, 1)
-	term.setBackgroundColor(colors.gray)
-	term.setTextColor(colors.cyan)
-	term.clearLine()
-	term.write("Money: "..self.player.money)
+	self.player:getOverlay():draw()
 end
 
 function Game:init()

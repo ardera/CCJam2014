@@ -2,11 +2,15 @@ local termargs = {...}
 local gameargs = {...}
 local prefixpath = "/"
 local executionpath = "/villages/"
+local oldTerm = term.current()
 
 if termargs[1] then
 	executionpath = termargs[1]
 	table.remove(gameargs, 1)
 end
+
+term.clear()
+term.setCursorPos(1, 1)
 
 -- utils
 
@@ -38,7 +42,6 @@ end
 
 
 -- real execution
-
 setPrefix(executionpath)
 
 require "not32log"
@@ -50,14 +53,21 @@ require "screenmenue"
 require "screengame"
 require "event"
 require "game"
+require "player"
+require "elementcategory"
 require "world"
 require "worldelement"
 require "camera"
 require "worldgenerator"
-require "player"
+require "buffer"
+require "bufferwrap"
+require "linkinglibrary"
+
 
 local m = Villages()
 local ok, err = pcall(function() m:main(gameargs) end)
+
+term.redirect(oldTerm)
 
 term.setBackgroundColor(colors.black)
 term.setTextColor(colors.white)

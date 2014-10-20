@@ -1,0 +1,10 @@
+class "Elementcategory" {
+	name = "nothing", 
+	toolbarBackgroundColor = Player.toolbarBackgroundColor,
+	toolbarTextColor = Player.toolbarTextColor
+}
+
+class "ElementcategoryNature" : extend "Elementcategory" {
+	name = "nature",
+	toolbarTextColor = colors.green
+}

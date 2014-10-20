@@ -1,7 +1,6 @@
 local debug = true
 
 local w = fs.open("log", "w")
-w.close()
 
 function clearyield()
 	os.queueEvent("clearyield")
@@ -19,9 +18,8 @@ end
 
 function log(...)
 	if debug then
-		local w = fs.open("log", "a")
 		w.writeLine(vts(...))
-		w.close()
+		w.flush()
 	end
 end
 

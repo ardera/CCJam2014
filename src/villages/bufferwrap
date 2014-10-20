@@ -1,0 +1,51 @@
+bufferwrap = {}
+function bufferwrap.toRedirection(buf)
+	local t = {}
+	
+	local function add(n)
+		t[n] = function(...)
+			local func = buf[n]
+			return func(buf, ...)
+		end
+	end
+	
+	if term.isColor() then
+		add "isColor"
+		add "isColour"
+		
+		add "setTextColor"
+		add "setTextColour"
+		
+		add "setBackgroundColor"
+		add "setBackgroundColour"
+	end
+	
+	add "write"
+	
+	add "setCursorPos"
+	add "getCursorPos"
+	
+	add "clear"
+	add "clearLine"
+	add "scroll"
+	
+	add "setCursorBlink"
+	
+	add "getSize"
+	
+	return t
+end
+
+function bufferwrap.useBuffer(buf)
+	local redirection = bufferwrap.toRedirection(buf)
+	term.redirect(redirection)
+	dispose = function(...) local cur = term.current() local ret = {buf:render(...)} term.redirect(cur) return unpack(ret) end
+end
+
+function bufferwrap.startup()
+	local w, h = term.getSize()
+	local buf = buffer.new(w, h, 1, 1, term.native())
+	bufferwrap.useBuffer(buf)
+end
+
+function dispose() end

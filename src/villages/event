@@ -1,5 +1,6 @@
 class "Event" {
 	MouseClick = "mouse_click",
+	MouseScroll = "mouse_scroll",
 	Key = "key",
 	Char = "char",
 	Timer = "timer",

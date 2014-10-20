@@ -12,6 +12,7 @@ class "Villages" {
 
 function Villages:draw()
 	self.currentscreen:draw()
+	dispose()
 end
 
 function Villages:update(ev)
@@ -19,20 +20,29 @@ function Villages:update(ev)
 end
 
 function Villages:main(gameargs)
-	logprint("asdf")
+	log "asdf"
+	log "initializing game"
 	
 	Villages.instance = self
+	bufferwrap.startup()
 	self.currentscreen = ScreenMenue()
 	self.running = true
 	
-	local drawTimer = os.startTimer(1 / self.fps)
-	local drawTimerStart = os.clock()
+	WorldelementList()
+	
+	log "initializing screen"
+	
+	self:update(Event("screen_initialization"))
+	
+	log "starting game loop"
 	
 	self.lastDraw = 0
 	self.lastUpdate = 0
 	
-	self:update(Event("screen_initialization"))
-	
+	log ("self.fps="..tostring(self.fps))
+	local drawTimer = os.startTimer(1 / self.fps)
+	local drawTimerStart = os.clock()
+
 	while self.running do
 		local ev = Event(os.pullEvent())
 		if ev:is(Event.Timer) and ev:getDetail(1) == drawTimer then

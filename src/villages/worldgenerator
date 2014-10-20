@@ -1,7 +1,7 @@
 class "WorldGenerator" {}
 
 function WorldGenerator:generatePoint(x, y, w)
-	w:setWorldElement(x, y, WorldElementTerrain())
+	w:setWorldElement(x, y, WorldelementTerrain())
 end
 
 function WorldGenerator:generateRect(sX, sY, eX, eY, w)

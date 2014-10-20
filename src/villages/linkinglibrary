@@ -1,0 +1,153 @@
+local links = {}
+local slinks = {}
+local cslinks = setmetatable({}, {__index = function(t, k) return slinks[k]() end})
+local adresstolink = {}
+local adresstoslink = {}
+
+local __eq_l = function(a, b)
+	return adresstolink[a] == adresstolink[b]
+end
+
+local __eq_sl = function(a, b)
+	return adresstoslink[a] == adresstoslink[b]
+end
+
+function link(val, id)
+	local wrong_type = "Link Value must be a byval type. (number, string, boolean, nil)"
+	if not id then
+		id = math.random()
+		while links[id] do
+			id = math.random()
+		end
+	end
+	
+	if type(val) == "number" or type(f) == "string" or type(f) == "boolean" then
+		links[id] = val
+	elseif type(val) ~= "nil" then
+		error(wrong_type, 2)
+	end
+	
+	local l = setmetatable({}, {
+		__newindex = function(t, k, v)
+			if k == "s" and (type(v) == "number" or type(v) == "string" or type(v) == "boolean" or v == nil) then
+				-- only byval types allowed
+				links[id] = v
+			else
+				error(wrong_type, 2)
+			end
+		end,
+		__index = function(t, k)
+			if k == "g" then
+				return links[id]
+			end
+		end,
+		__call = function()
+			return link(nil, id)
+		end,
+		__metatable = "link",
+		__tostring = function()
+			return tostring(links[id])
+		end,
+		__unm = function()
+			return -links[id]
+		end,
+		__add = function(a, b)
+			return links[id] + b
+		end,
+		__sub = function(a, b)
+			return links[id] - b
+		end,
+		__mul = function(a, b)
+			return links[id] * b
+		end,
+		__div = function(a, b)
+			return links[id] / b
+		end,
+		__mod = function(a, b)
+			return links[id] % b
+		end,
+		__pow = function(a, b)
+			return links[id] ^ b
+		end,
+		__concat = function(a, b)
+			return tostring(links[id]) .. tostring(b)
+		end,
+		__eq = __eq_l
+	})
+	adresstolink[l] = id
+	
+	return l
+end
+
+fslink = 0
+
+function slink(f, id)
+	local wrong_type = "Stronglink value must be a byval type (number, string, boolean, nil) or a function."
+	if not id then
+		id = math.random()
+		while slinks[id] do
+			id = math.random()
+		end
+	end
+	
+	if type(f) == "function" then
+		slinks[id] = f
+	elseif type(f) == "number" or type(f) == "string" or type(f) == "boolean" then
+		slinks[id] = function() return f end
+	elseif type(f) ~= "nil" then
+		error(wrong_type, 2)
+	end
+	
+	local l = setmetatable({}, {
+		__newindex = function(t, k, v)
+			if k == "s" and (type(v) == "number" or type(v) == "string" or type(f) == "boolean" or v == nil) then
+				-- only byval types allowed
+				slinks[id] = function() return v end
+			else
+				error(wrong_type, 2)
+			end
+		end,
+		__index = function(t, k)
+			if k == "g" then
+				return cslinks[id]
+			end
+		end,
+		__call = function()
+			return slink(nil, id)
+		end,
+		__metatable = "stronglink",
+		__tostring = function()
+			return tostring(cslinks[id])
+		end,
+		__unm = function()
+			return slink(function() return -cslinks[id] end)
+		end,
+		__add = function(a, b)
+			return slink(function() return cslinks[id] + b end)
+		end,
+		__sub = function(a, b)
+			return slink(function() return cslinks[id] - b end)
+		end,
+		__mul = function(a, b)
+			return slink(function() return cslinks[id] * b end)
+		end,
+		__div = function(a, b)
+			return slink(function() return cslinks[id] / b end)
+		end,
+		__mod = function(a, b)
+			return slink(function() return cslinks[id] % b end)
+		end,
+		__pow = function(a, b)
+			return slink(function() return cslinks[id] ^ b end)
+		end,
+		__concat = function(a, b)
+			return slink(function() return tostring(cslinks[id]) .. tostring(b) end)
+		end,
+		__eq = __eq_sl
+	})
+	
+	adresstoslink[l] = id
+	
+	return l
+end
+
