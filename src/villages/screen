@@ -23,9 +23,9 @@ end
 
 function Screen.clearRect(sX, sY, eX, eY, fg, bg)
 	Screen.setColor(fg, bg)
-	for a = sY, eY do
-		term.setCursorPos(sX, a)
-		term.write((" "):rep(eY-sY+1))
+	for a = math.min(sY, eY), math.max(sY, eY) do
+		term.setCursorPos(math.min(sX, eX), a)
+		term.write((" "):rep(math.max(sX, eX) - math.min(sX, eX) + 1))
 	end
 end
 

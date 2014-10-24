@@ -17,7 +17,7 @@ function WorldelementList:add(e)
 end
 
 function WorldelementList:get(cn)
-	check(e, "number", Elementcategory)
+	check(cn, "number", Elementcategory)
 	if type(cn) == "number" then
 		return WorldelementList.elementsbnumber[cn]
 	else
@@ -42,6 +42,7 @@ function WorldelementList:addHardcodedElements()
 	self:add(WorldelementWood)
 	self:add(WorldelementNothing)
 	self:add(WorldelementStone)
+	self:add(WorldelementMachine)
 end
 
 function WorldelementList:init()
@@ -50,6 +51,7 @@ function WorldelementList:init()
 end
 
 class "Worldelement" {
+	name = "Worldelement",
 	color = colors.white,
 	char = " ",
 	mouseaction = Screen(),
@@ -86,25 +88,36 @@ function Worldelement:isTicking()
 end
 
 class "WorldelementTerrain" : extend "Worldelement" {
+	name = "Terrain",
 	color = colors.brown,
 	char = " ",
 	category = ElementcategoryNature
 }
 
 class "WorldelementWood" : extend "Worldelement" {
+	name = "Wood",
 	color = colors.brown,
 	char = "I",
 	category = ElementcategoryNature
 }
 
 class "WorldelementNothing" : extend "Worldelement" {
+	name = "Nothing",
 	color = colors.white,
 	char = " ",
 	category = ElementcategoryNature
 }
 
 class "WorldelementStone" : extend "Worldelement" {
+	name = "Stone",
 	color = colors.gray,
 	char = " ",
 	category = ElementcategoryNature
+}
+
+class "WorldelementMachine" : extend "Worldelement" {
+	name = "Machine",
+	color = colors.gray,
+	char = "#",
+	category = ElementcategoryIndustry
 }

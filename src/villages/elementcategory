@@ -5,6 +5,9 @@ class "Elementcategory" {
 }
 
 class "ElementcategoryNature" : extend "Elementcategory" {
-	name = "nature",
-	toolbarTextColor = colors.green
+	name = "nature"
+}
+
+class "ElementcategoryIndustry" : extend "Elementcategory" {
+	name = "industry"
 }

@@ -5,9 +5,11 @@ function class(name)
 	cl = {__parent = "Object", __members = {}, __name = name, __origin = name, __originparent = "Object",
 	__relatedto = function(c)
 		local cur = cl
+		if cur.__origin == c.__origin then
+			return true
+		end
 		while cur.__originparent ~= c.__origin do
-			log("current: " .. tostring(cur))
-			cur = cur.__originparent
+			cur = _G[cur.__originparent]
 			if cur == nil then
 				return false
 			end
@@ -117,7 +119,7 @@ function check(c, ...)
 		
 		if args[a] == type(c) then
 			return true
-		elseif type(args[a]) == "table" and args[a].__originparent and args[a].__origin and c.__relatedto(args[a]) then
+		elseif type(c) == "table" and c.__originparent and c.__origin and c.__relatedto(args[a]) then
 			return true
 		end
 	end

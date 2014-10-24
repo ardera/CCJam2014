@@ -1,4 +1,12 @@
 asdf
-Placing: WorldElementNothing
-elementnow: WorldElementTerrain
-elementafter: WorldElementNothing
+initializing game
+ElementcategoryNature = table: 4da45d2b
+ElementcategoryNature = table: 4da45d2b
+ElementcategoryNature = table: 4da45d2b
+ElementcategoryNature = table: 4da45d2b
+ElementcategoryNature = table: 4da45d2b
+initializing screen
+maxx = 8
+maxy = 2
+starting game loop
+self.fps=20

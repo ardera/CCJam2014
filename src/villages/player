@@ -19,7 +19,16 @@ function Player:getMoney()
 end
 
 function Player:resetOverlays()
-	self.combinedoverlay = self.toolbaroverlay
+	if self.hasactionoverlay then
+		self.actionoverlay:reset()
+	end
+	if self.hasbuildingoverlay then
+		self.buildingoverlay:reset()
+	end
+	if self.hasmenueoverlay then
+		self.menueoverlay:reset()
+	end
+	self.overlay = self.toolbaroverlay
 	self.hasactionoverlay = false
 	self.hasbuildingoverlay = false
 	self.hasmenueoverlay = false
@@ -27,24 +36,25 @@ function Player:resetOverlays()
 end
 
 function Player:toggleOverlay(s)
-	if s.__relatedto(ScreenActionOverlay) then
+	if s.__relatedto(ActionOverlay) then
 		if self.hasactionoverlay then self:resetOverlays() return end
 		self:resetOverlays()
 		self.hasactionoverlay = true
 		self.hasoverlay = true
-		self.combinedoverlay = Screen.combine(self.toolbaroverlay, s)
-	elseif s.__relatedto(ScreenBuildingOverlay) then
+		self.actionoverlay = s
+		self.overlay = Screen.combine(self.toolbaroverlay, s)
+	elseif s.__relatedto(BuildingOverlay) then
 		if self.hasbuildingoverlay then self:resetOverlays() return end
 		self:resetOverlays()
 		self.hasbuildingoverlay = true
 		self.hasoverlay = true
-		self.combinedoverlay = Screen.combine(self.toolbaroverlay, self.buildingoverlay)
-	elseif s.__relatedto(ScreenMenueOverlay) then
+		self.overlay = Screen.combine(self.toolbaroverlay, self.buildingoverlay)
+	elseif s.__relatedto(MenueOverlay) then
 		if self.hasmenueoverlay then self:resetOverlays() return end
 		self:resetOverlays()
 		self.hasmenueoverlay = true
 		self.hasoverlay = true
-		self.combinedoverlay = Screen.combine(self.toolbaroverlay, self.menueoverlay)
+		self.overlay = Screen.combine(self.toolbaroverlay, self.menueoverlay)
 	end
 end
 
@@ -55,19 +65,21 @@ function Player:update(ev)
 		local y = ev:getDetail(3)
 		
 		if y == 1 and x >= Screen.w - 2 and x <= Screen.w then
-			self:toggleOverlay(ScreenBuildingOverlay)
+			self:toggleOverlay(BuildingOverlay)
 		elseif y == 1 and x >= Screen.w - 6 and x <= Screen.w - 4 then
-			self:toggleOverlay(ScreenMenueOverlay)
+			self:toggleOverlay(MenueOverlay)
 		elseif not self.hasoverlay then
 			local world = self.game.world
 			local worldX, worldY = self.game.camera:toWorldCoordinates(x, y)
 			local e = world:getWorldElement(worldX, worldY)
-			if e:hasMouseAction() then
+			if self.game.camera:getDrawGrid() then
+				self.toolbaroverlay:setCoords(worldX, worldY)
+			elseif e:hasMouseAction() then
 				self:toggleOverlay(e:onClick())
-			elseif self.placing and not self.placementCacheStartX and not self.placementCacheStartY then
+			elseif self.placing == 1 then
 				self.placementCacheStartX, self.placementCacheStartY = worldX, worldY
-			elseif self.placing and self.placementCacheStartX and self.placementCacheStartY then
-				self.placing = false
+				self.placing = 2
+			elseif self.placing == 2 then
 				self.placementCacheEndX, self.placementCacheEndY = worldX, worldY
 				self:place()
 			end
@@ -80,6 +92,15 @@ function Player:update(ev)
 		end
 	elseif ev:is(Event.MouseScroll) then
 		
+	elseif ev:is(Event.Char) then
+		local c = ev:getDetail(1)
+		if c == "g" then
+			if self.game.camera:getDrawGrid() then
+				self.game.camera:setDrawGrid(false)
+			else
+				self.game.camera:setDrawGrid(true)
+			end
+		end
 	end
 end
 
@@ -116,7 +137,11 @@ function Player:hasMenueOverlay()
 end
 
 function Player:isPlacing()
-	return self.placing
+	return self.placing > 0
+end
+
+function Player:setPlacing(b)
+	self.placing = b
 end
 
 function Player:getPlacementCache()
@@ -128,14 +153,13 @@ function Player:setPlacementElement(e)
 end
 
 function Player:place()
-	local logged = false
 	for x = math.min(self.placementCacheStartX, self.placementCacheEndX), math.max(self.placementCacheStartX, self.placementCacheEndX) do
 		for y = math.min(self.placementCacheStartY, self.placementCacheEndY), math.max(self.placementCacheStartY, self.placementCacheEndY) do
 			e = self.game.world:getWorldElement(x, y)
 			self.game.world:setWorldElement(x, y, self.placementElement)
 		end
 	end
-	self.placementCacheStartX, self.placementCacheStartY, self.placementCacheEndX, self.placementCacheEndY, self.placing = 0, 0, 0, 0, false
+	self.placementCacheStartX, self.placementCacheStartY, self.placementCacheEndX, self.placementCacheEndY, self.placing = 0, 0, 0, 0, 0
 end
 
 function Player:init(m, g)
@@ -145,7 +169,7 @@ function Player:init(m, g)
 	self.placementCacheEndX = 0
 	self.placementCacheEndY = 0
 	self.placementElement = WorldelementWood()
-	self.placing = false
+	self.placing = 0
 	self.game = g
 	
 	self.hasoverlay = false
@@ -154,22 +178,35 @@ function Player:init(m, g)
 	self.hasmenueoverlay = false
 	
 	self.actionoverlay = Screen()
-	self.toolbaroverlay = ScreenToolbarOverlay(self)
-	self.buildingoverlay = ScreenBuildingOverlay(self)
-	self.menueoverlay = ScreenMenueOverlay(self)
+	self.toolbaroverlay = ToolbarOverlay(self)
+	self.buildingoverlay = BuildingOverlay(self)
+	self.menueoverlay = MenueOverlay(self)
 	
 	self.overlay = self.toolbaroverlay
 end
 
-class "ScreenToolbarOverlay" : extend "Screen" {}
+class "Overlay" : extend "Screen" {}
+function Overlay:draw() end
+function Overlay:onClick(e) end
+function Overlay:reset() end
 
-function ScreenToolbarOverlay:draw()
+class "ToolbarOverlay" : extend "Overlay" {}
+
+function ToolbarOverlay:draw()
 	term.setCursorPos(1, 1)
 	term.setBackgroundColor(Player.toolbarBackgroundColor)
 	term.setTextColor(Player.toolbarTextColor)
 	term.clearLine()
 	
 	term.write("balance: " .. self.player.money)
+	
+	if self.player.game.camera:getDrawGrid() then
+		term.setCursorPos(1, 2)
+		term.clearLine()
+		term.write("x="..self.x.." y="..self.y)
+		term.setCursorPos(20, 2)
+		term.write("e="..self.player.game.world:getWorldElement(self.x, self.y).__nameg)
+	end
 	
 	term.setCursorPos(Screen.w - 6, 1)
 	if self.player:hasMenueOverlay() then
@@ -188,58 +225,139 @@ function ScreenToolbarOverlay:draw()
 	term.write("[b]")
 end
 
-function ScreenToolbarOverlay:init(p)
+function ToolbarOverlay:setCoords(x, y)
+	self.x = x
+	self.y = y
+end
+
+function ToolbarOverlay:init(p)
+	self.player = p
+	self.x = 0
+	self.y = 0
+end
+
+class "MenueOverlay" : extend "Overlay" {}
+
+function MenueOverlay:onClick(e)
+end
+
+function MenueOverlay:draw()
+end
+
+function MenueOverlay:init(p)
 	self.player = p
 end
 
-class "ScreenMenueOverlay" : extend "Screen" {}
+class "BuildingOverlay" : extend "Overlay" {
+	backgroundcolorMenuepointNormal = Player.toolbarBackgroundColor,
+	backgroundcolorMenuepointActive = colors.lightGray,
+	textcolorMenuepointActive = colors.gray,
+	textcolorMenuepointNormal = Player.toolbarTextColor
+}
 
-function ScreenMenueOverlay:onClick(e)
+function BuildingOverlay:reset()
+	self.active = 0
 end
 
-function ScreenMenueOverlay:draw()
+function BuildingOverlay:onClick(e)
+	local but = e:getDetail(1)
+	local x = e:getDetail(2)
+	local y = e:getDetail(3)
+	local sub = self.submenues[self.categories[self.active]]
+	if y > 1 and y <= 1 + self.maxy and x > self.w - self.maxx - 2 then
+		if self.active == y - 1 then
+			self.active = 0
+		else
+			self.active = y - 1
+		end
+	elseif y > self.active and y <= self.active + sub.maxy and x >= Screen.w - self.maxx - 2 - sub.maxx and x < Screen.w - self.maxx - 2 then
+		log "in sub"
+		local suby = y - self.active
+		local element = sub[suby]
+		self.player:setPlacementElement(element)
+		self.player:setPlacing(1)
+		self.player:toggleOverlay(BuildingOverlay)
+	end
 end
 
-function ScreenMenueOverlay:init(p)
-	self.player = p
-end
-
-class "ScreenBuildingOverlay" : extend "Screen" {}
-
-function ScreenBuildingOverlay:onClick(e)
-
-end
-
-function ScreenBuildingOverlay:draw()
+function BuildingOverlay:draw()
 	Player.setToolbarTheme()
-	Screen.clearRect(Screen.w - self.maxx - 1, 2, Screen.w, 1 + self.maxy)
+	Screen.clearRect(Screen.w - self.maxx - 2, 2, Screen.w, 1 + self.maxy)
+	for a = 1, self.maxy do
+		if self.active == a then
+			term.setBackgroundColor(self.backgroundcolorMenuepointActive)
+			term.setTextColor(self.textcolorMenuepointActive)
+			term.setCursorPos(Screen.w - self.maxx - 2, a + 1)
+			term.write((" "):rep(self.maxx + 3))
+		else
+			term.setBackgroundColor(self.backgroundcolorMenuepointNormal)
+			term.setTextColor(self.textcolorMenuepointNormal)
+		end
+		
+		term.setCursorPos(Screen.w - self.maxx - 2, a + 1)
+		term.write("<")
+	
+		if self.active == a then
+			term.setTextColor(self.textcolorMenuepointActive)
+		else
+			term.setTextColor(self.textcolorMenuepointNormal)
+		end
+		
+		term.setCursorPos(Screen.w - self.maxx, a + 1)
+		term.write(self.categories[a].name)
+		
+		if self.active == a then
+			local sub = self.submenues[self.categories[self.active]]
+			local subbegin = Screen.w - self.maxx - 2 - sub.maxx
+			term.setBackgroundColor(self.backgroundcolorMenuepointNormal)
+			term.setTextColor(self.textcolorMenuepointNormal)
+			Screen.clearRect(subbegin, 2 + self.active - 1, Screen.w - self.maxx - 3, sub.maxy + self.active)
+			for a = 1, #sub do
+				term.setCursorPos(subbegin, a + self.active)
+				term.write(sub[a].name)
+			end
+		end
+	end
 end
 
-function ScreenBuildingOverlay:init(p)
+function BuildingOverlay:init(p)
 	self.player = p
 	
 	self.categories = WorldelementList.instance:getCategories()
+	self.submenues = {}
 	local maxx = 0
 	for a = 1, #self.categories do
 		if #self.categories[a].name > maxx then
 			maxx = #self.categories[a].name
+			self.submenues[self.categories[a]] = {}
+			local submaxx = 0
+			local submaxy = 0
+			for _, b in pairs(WorldelementList.instance:get(self.categories[a])) do
+				self.submenues[self.categories[a]][#self.submenues[self.categories[a]] + 1] = b
+				submaxx = math.max(submaxx, #b.name)
+				submaxy = submaxy + 1
+			end
+			self.submenues[self.categories[a]].maxx = submaxx
+			self.submenues[self.categories[a]].maxy = submaxy
 		end
 	end
+	
 	self.maxx = maxx
 	self.maxy = #self.categories
+	self.active = 0
 	
 	log("maxx = "..self.maxx)
 	log("maxy = "..self.maxy)
 end
 
-class "ScreenActionOverlay" : extend "Screen" {}
+class "ActionOverlay" : extend "Overlay" {}
 
-function ScreenActionOverlay:onClick(e)
+function ActionOverlay:onClick(e)
 end
 
-function ScreenActionOverlay:draw()
+function ActionOverlay:draw()
 end
 
-function ScreenActionOverlay:init(p)
+function ActionOverlay:init(p)
 	self.player = p
 end
