@@ -29,12 +29,22 @@ function Screen.clearRect(sX, sY, eX, eY, fg, bg)
 	end
 end
 
+function Screen.clearLine(y, sX, eX, fg, bg)
+	Screen.setColor(fg, bg)
+	term.setCursorPos(math.min(sX, eX), y)
+	term.write((" "):rep(math.max(sX, eX) - math.min(sX, eX) + 1))
+end
+
 function Screen.combine(...)
 	return ScreenCombined(...)
 end
 
 function Screen.themedclear()
 	Screen.clear(Villages.config.colortheme.text, Villages.config.colortheme.bg)
+end
+
+function Screen.getCentredX(str)
+	return math.floor(Screen.w / 2 - #str / 2)
 end
 
 class "ScreenTest" : extend "Screen" {}
@@ -50,5 +60,11 @@ end
 function ScreenCombined:draw()
 	for a = 1, #self.screens do
 		self.screens[a]:draw()
+	end
+end
+
+function ScreenCombined:update(ev)
+	for a = 1, #self.screens do
+		self.screens[a]:update(ev)
 	end
 end

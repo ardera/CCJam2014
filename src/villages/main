@@ -1,14 +1,45 @@
+local defconfig = {}
+defconfig.tc_toolbar = colors.cyan
+defconfig.bgc_toolbar = colors.gray
+	
+defconfig.tc_menue_active = colors.orange
+defconfig.bgc_menue_active = defconfig.bgc_toolbar
+defconfig.tc_menue_normal = defconfig.tc_toolbar
+defconfig.bgc_menue_normal = defconfig.bgc_toolbar
+
+defconfig.tc_menuepoint_active = colors.gray
+defconfig.bgc_menuepoint_active = colors.lightGray
+defconfig.tc_menuepoint_normal = defconfig.tc_toolbar
+defconfig.bgc_menuepoint_normal = defconfig.bgc_toolbar
+	
+defconfig.tc_windowtitle = defconfig.tc_menuepoint_active
+defconfig.bgc_windowtitle = defconfig.bgc_menuepoint_active
+
+defconfig.tc_window = defconfig.tc_toolbar
+defconfig.bgc_window = defconfig.bgc_toolbar
+
+defconfig.tc_button_normal = defconfig.tc_toolbar
+defconfig.bgc_button_normal = defconfig.bgc_toolbar
+defconfig.tc_button_active = defconfig.tc_menue_active
+defconfig.bgc_button_active = defconfig.bgc_menue_active
+
+defconfig.tc_grid_1 = colors.cyan
+defconfig.tc_grid_2 = colors.red
+
 class "Villages" {
-	config = {
-		colortheme = {
-			text = colors.orange,
-			bg = colors.gray
-		}
-	},
+	config = defconfig,
 	currentscreen = {},
 	instance = {},
 	fps = 20					-- more isn't possible
 }
+
+function Villages.getC(t)
+	return Villages.config[t]
+end
+
+_G.config = function(t)
+	return Villages.getC(t)
+end
 
 function Villages:draw()
 	self.currentscreen:draw()
@@ -34,17 +65,17 @@ function Villages:main(gameargs)
 	
 	self:update(Event("screen_initialization"))
 	
-	log "starting game loop"
-	
 	self.lastDraw = 0
 	self.lastUpdate = 0
 	
 	log ("self.fps="..tostring(self.fps))
 	local drawTimer = os.startTimer(1 / self.fps)
 	local drawTimerStart = os.clock()
-
+	
+	log "starting game loop"
+	
 	while self.running do
-		local ev = Event(os.pullEvent())
+		local ev = Event.pull()
 		if ev:is(Event.Timer) and ev:getDetail(1) == drawTimer then
 			self:draw()
 			self.lastDraw = os.clock()

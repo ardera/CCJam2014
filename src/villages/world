@@ -38,6 +38,10 @@ function World:tick()
 	end
 end
 
+function World:save()
+
+end
+
 function World:init(g)
 	local w = {}
 	self.w = w

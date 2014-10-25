@@ -6,21 +6,39 @@ class "Event" {
 	Timer = "timer",
 	ScreenInitialization = "screen_initialization"
 }
+local ename_to_class = {}
+
+function Event.notification(n)
+	if n:checkSender(AbstractEvent) then
+		ename_to_class[n:getSender().name] = n:getSender()
+	end
+end
 
 function Event.pull(filter)
 	return Event(os.pullEvent(filter))
 end
 
-function Event.queue(event)
+function Event.queue(event)	-- static method works for static queueing and instanced queueing, so Event.queue(ev) == ev:queue()
 	os.queueEvent(unpack(event:getAll()))
 end
 
-function Event:init(...)
+function Event.of(n, ...)
+	if ename_to_class[n] then
+		return ename_to_class[n](...)
+	end
+end
+
+function Event:__init(...)
+	local e = Event.of(...)
+	if e then
+		return e
+	end
 	self.fullevent = {...}
 	self.name = self.fullevent[1]
 	local det = {...}
 	table.remove(det, 1)
 	self.details = det
+	return self
 end
 
 function Event:getName()
@@ -42,3 +60,31 @@ end
 function Event:getDetail(n)
 	return self.details[n]
 end
+
+function Event.timer(t) return TimerEvent(t) end
+
+class "AbstractEvent" : extend "Event" {name = ""}
+function AbstractEvent:init(...)
+	self.fullevent = {...}
+	table.insert(self.fullevent, 1, self.name)
+	self.details = {...}
+end
+
+class "TimerEvent" : extend "AbstractEvent" { name = "timer" } : notify "Event"
+function TimerEvent:getTime() return self:getDetail(1) end
+--ename_to_class["timer"] = TimerEvent
+class "MouseClickEvent" : extend "AbstractEvent" { name = "mouse_click" } : notify "Event"
+function MouseClickEvent:getButton() return self:getDetail(1) end
+function MouseClickEvent:getX() return self:getDetail(2) end
+function MouseClickEvent:getY() return self:getDetail(3) end
+function MouseClickEvent:isLeftButton() return self:getButton() == 1 end
+function MouseClickEvent:isRightButton() return self:getButton() == 2 end
+function MouseClickEvent:getCoords() return self:getX(), self:getY() end
+--ename_to_class["mouse_click"] = MouseClickEvent
+class "MouseScrollEvent" : extend "AbstractEvent" { name = "mouse_scroll" } : notify "Event"
+function MouseScrollEvent:getScroll() return self:getDetail(1) end
+class "KeyEvent" : extend "AbstractEvent" {name = "key"} : notify "Event"
+function KeyEvent:getKey() return self:getDetail(1) end
+class "CharEvent" : extend "AbstractEvent" {name = "char"} : notify "Event"
+function CharEvent:getChar() return self:getDetail(1) end
+class "ScreenInitializationEvent" : extend "AbstractEvent" {name = "screen_initialization"} : notify "Event"

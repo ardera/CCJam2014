@@ -9,8 +9,6 @@ function Camera:init(x, y, z)
 	self.rangeY = h / 2
 	self.grid = false
 	self.gridchar = "#"
-	self.gridcolor1 = colors.cyan
-	self.gridcolor2 = colors.red
 end
 
 function Camera:toWorldCoordinates(x, y)
@@ -30,13 +28,13 @@ function Camera:drawWorldelement(e, x, y)
 			r = 0
 		end
 		if (x + r) % 2 == 0 then
-			term.setTextColor(self.gridcolor1)
+			term.setTextColor(config "tc_grid_1")
 		else
-			term.setTextColor(self.gridcolor2)
+			term.setTextColor(config "tc_grid_2")
 		end
 		term.write(self.gridchar)
 	else
-		term.setTextColor(colors.gray)
+		term.setTextColor(e:getTextColor())
 		term.write(e:getChar())
 	end
 end
@@ -51,7 +49,6 @@ function Camera:renderWorld(w, offsetX, offsetY)
 end
 
 function Camera:setDrawGrid(b)
-	log ("set grid to "..tostring(b))
 	self.grid = b or false
 end
 

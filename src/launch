@@ -44,9 +44,11 @@ end
 -- real execution
 setPrefix(executionpath)
 
+require "util"
+
 require "not32log"
 
-require "util"
+
 require "main"
 require "screen"
 require "screenmenue"

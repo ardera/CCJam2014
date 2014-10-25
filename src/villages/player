@@ -1,19 +1,13 @@
-class "Player" {
-	toolbarBackgroundColor = colors.gray,
-	toolbarTextColor = colors.cyan,
-	toolbarBuildingActiveColor = colors.orange,
-	toolbarMenueActiveColor = colors.orange
-}
+class "Player" {}
 
 function Player.setToolbarTheme()
-	term.setBackgroundColor(Player.toolbarBackgroundColor)
-	term.setTextColor(Player.toolbarTextColor)
+	term.setBackgroundColor(config "bgc_toolbar")
+	term.setTextColor(config "tc_toolbar")
 end
 
 function Player:setMoney(m)
 	self.money = m
 end
-
 function Player:getMoney()
 	return self.money
 end
@@ -28,13 +22,16 @@ function Player:resetOverlays()
 	if self.hasmenueoverlay then
 		self.menueoverlay:reset()
 	end
+	if self.hastooloverlay then
+		self.tooloverlay:reset()
+	end
 	self.overlay = self.toolbaroverlay
 	self.hasactionoverlay = false
 	self.hasbuildingoverlay = false
 	self.hasmenueoverlay = false
+	self.hastooloverlay = false
 	self.hasoverlay = false
 end
-
 function Player:toggleOverlay(s)
 	if s.__relatedto(ActionOverlay) then
 		if self.hasactionoverlay then self:resetOverlays() return end
@@ -55,6 +52,24 @@ function Player:toggleOverlay(s)
 		self.hasmenueoverlay = true
 		self.hasoverlay = true
 		self.overlay = Screen.combine(self.toolbaroverlay, self.menueoverlay)
+	elseif s.__relatedto(ToolOverlay) then
+		log "toggling tool overlay"
+		if self.hastooloverlay then self:resetOverlays() return end
+		self:resetOverlays()
+		self.hastooloverlay = true
+		self.hasoverlay = true
+		self.overlay = Screen.combine(self.toolbaroverlay, self.tooloverlay)
+	end
+end
+function Player:activeOverlay(s)
+	if s.__relatedto(ActionOverlay) and not self.hasactionoverlay then
+		self:toggleOverlay(s)
+	elseif s.__relatedto(BuildingOverlay) and not self.hasbuildingoverlay then
+		self:toggleOverlay(self.buildingoverlay)
+	elseif s.__relatedto(MenueOverlay) and not self.hasmenueoverlay then
+		self:toggleOverlay(self.menueoverlay)
+	elseif s.__relatedto(ToolOverlay) and not self.hastooloverlay then
+		self:toggleOverlay(self.tooloverlay)
 	end
 end
 
@@ -64,11 +79,7 @@ function Player:update(ev)
 		local x = ev:getDetail(2)
 		local y = ev:getDetail(3)
 		
-		if y == 1 and x >= Screen.w - 2 and x <= Screen.w then
-			self:toggleOverlay(BuildingOverlay)
-		elseif y == 1 and x >= Screen.w - 6 and x <= Screen.w - 4 then
-			self:toggleOverlay(MenueOverlay)
-		elseif not self.hasoverlay then
+		if not self.hasoverlay then
 			local world = self.game.world
 			local worldX, worldY = self.game.camera:toWorldCoordinates(x, y)
 			local e = world:getWorldElement(worldX, worldY)
@@ -83,13 +94,8 @@ function Player:update(ev)
 				self.placementCacheEndX, self.placementCacheEndY = worldX, worldY
 				self:place()
 			end
-		elseif self.hasbuildingoverlay then
-			self.buildingoverlay:onClick(ev)
-		elseif self.hasmenueoverlay then
-			self.menueoverlay:onClick(ev)
-		elseif self.hasactionoverlay then
-			self.actionoverlay:onClick(ev)
 		end
+		self.overlay:update(ev)
 	elseif ev:is(Event.MouseScroll) then
 		
 	elseif ev:is(Event.Char) then
@@ -107,33 +113,32 @@ end
 function Player:getOverlay()
 	return self.overlay
 end
-
 function Player:hasOverlay()
 	return self.hasoverlay
 end
-
 function Player:getActionOverlay()
 	return self.combinedoverlay
 end
-
 function Player:hasActionOverlay()
 	return self.hasactionoverlay
 end
-
 function Player:getBuildingOverlay()
 	return self.buildingoverlay
 end
-
 function Player:hasBuildingOverlay()
 	return self.hasbuildingoverlay
 end
-
 function Player:getMenueOverlay()
 	return self.menueoverlay
 end
-
 function Player:hasMenueOverlay()
 	return self.hasmenueoverlay
+end
+function Player:hasToolOverlay()
+	return self.hastooloverlay
+end
+function Player:getToolOverlay()
+	return self.tooloverlay
 end
 
 function Player:isPlacing()
@@ -164,38 +169,46 @@ end
 
 function Player:init(m, g)
 	self.money = m
+	
 	self.placementCacheStartX = 0
 	self.placementCacheStartY = 0
 	self.placementCacheEndX = 0
 	self.placementCacheEndY = 0
 	self.placementElement = WorldelementWood()
 	self.placing = 0
+	
 	self.game = g
 	
 	self.hasoverlay = false
 	self.hasactionoverlay = false
 	self.hasbuildingoverlay = false
 	self.hasmenueoverlay = false
+	self.hastooloverlay = false
 	
 	self.actionoverlay = Screen()
 	self.toolbaroverlay = ToolbarOverlay(self)
 	self.buildingoverlay = BuildingOverlay(self)
 	self.menueoverlay = MenueOverlay(self)
+	self.tooloverlay = ToolOverlay(self)
 	
 	self.overlay = self.toolbaroverlay
 end
 
 class "Overlay" : extend "Screen" {}
 function Overlay:draw() end
-function Overlay:onClick(e) end
+function Overlay:init(p) self.player = p end
+function Overlay:activate() self.player:toggleOverlay(self) end
+function Overlay:onLeftMouseClick(e) end
+function Overlay:onRightMouseClick(e) end
+function Overlay:onMouseClick(e) if e:isLeftButton() then return self:onLeftMouseClick(e) elseif e:isRightButton() then return self:onRightMouseClick(e) end end
+function Overlay:update(e) if e:is(Event.MouseClick) then return self:onMouseClick(e) end end
 function Overlay:reset() end
 
 class "ToolbarOverlay" : extend "Overlay" {}
 
 function ToolbarOverlay:draw()
 	term.setCursorPos(1, 1)
-	term.setBackgroundColor(Player.toolbarBackgroundColor)
-	term.setTextColor(Player.toolbarTextColor)
+	Player.setToolbarTheme()
 	term.clearLine()
 	
 	term.write("balance: " .. self.player.money)
@@ -205,22 +218,30 @@ function ToolbarOverlay:draw()
 		term.clearLine()
 		term.write("x="..self.x.." y="..self.y)
 		term.setCursorPos(20, 2)
-		term.write("e="..self.player.game.world:getWorldElement(self.x, self.y).__nameg)
+		term.write("e="..self.player.game.world:getWorldElement(self.x, self.y).__name)
 	end
+	
+	term.setCursorPos(Screen.w - 10, 1)
+	if self.player:hasToolOverlay() then
+		term.setTextColor(config "tc_menue_active")
+	else
+		term.setTextColor(config "tc_menue_normal")
+	end
+	term.write("[t]")
 	
 	term.setCursorPos(Screen.w - 6, 1)
 	if self.player:hasMenueOverlay() then
-		term.setTextColor(Player.toolbarMenueActiveColor)
+		term.setTextColor(config "tc_menue_active")
 	else
-		term.setTextColor(Player.toolbarTextColor)
+		term.setTextColor(config "tc_menue_normal")
 	end
 	term.write("[m]")
 	
 	term.setCursorPos(Screen.w - 2, 1)
 	if self.player:hasBuildingOverlay() then
-		term.setTextColor(Player.toolbarBuildingActiveColor)
+		term.setTextColor(config "tc_menue_active")
 	else
-		term.setTextColor(Player.toolbarTextColor)
+		term.setTextColor(config "tc_menue_normal")
 	end
 	term.write("[b]")
 end
@@ -236,12 +257,143 @@ function ToolbarOverlay:init(p)
 	self.y = 0
 end
 
-class "MenueOverlay" : extend "Overlay" {}
+function ToolbarOverlay:hitsBuildingButton(x, y) return y == 1 and x >= Screen.w - 2 and x <= Screen.w end
+function ToolbarOverlay:hitsMenueButton(x, y) return y == 1 and x >= Screen.w - 6 and x <= Screen.w - 4 end
+function ToolbarOverlay:hitsToolButton(x, y) return y == 1 and x >= Screen.w - 10 and x <= Screen.w - 8 end
+function ToolbarOverlay:onLeftMouseClick(e)
+	local x = e:getX()
+	local y = e:getY()
+	if self:hitsBuildingButton(x, y) then
+		self.player:toggleOverlay(BuildingOverlay)
+	elseif self:hitsMenueButton(x, y) then
+		self.player:toggleOverlay(MenueOverlay)
+	elseif self:hitsToolButton(x, y) then
+		self.player:toggleOverlay(ToolOverlay)
+	end
+end
 
-function MenueOverlay:onClick(e)
+class "ToolOverlay" : extend "Overlay" {}
+
+function ToolOverlay:reset()
+	self.active = 0
+end
+
+function ToolOverlay:onLeftMouseClick(e)
+	local x = e:getX()
+	local y = e:getY()
+	
+	if self.active ~= 1 and y == 2 and x >= 1 and x <= 3 then
+		self.active = 1
+	elseif self.active == 1 and y == 2 and x >= 1 and x <= 3 then
+		self.active = 0
+	elseif self.active == 1 then
+		self.player:setPlacing(1)
+		self.player:setPlacementElement(self.player.game.world:getWorldElement(self.player.game.camera:toWorldCoordinates(x, y)))
+		self.player:toggleOverlay(ToolOverlay)
+	else
+		self.player:resetOverlays(ToolOverlay)
+	end
+end
+
+function ToolOverlay:draw()
+	term.setCursorPos(1, 2)
+	term.setBackgroundColor(config "bgc_toolbar")
+	term.setTextColor(config "tc_toolbar")
+	term.clearLine()
+	
+	if self.active == 1 then
+		term.setTextColor(config "tc_menue_active")
+	end
+	term.write("[p]")
+end
+
+function ToolOverlay:init(p)
+	self.player = p
+end
+
+class "MenueOverlay" : extend "Overlay" {
+	width = 20,
+	height = 5,
+	active = 0
+}
+
+function MenueOverlay:reset()
+	self.active = 0
 end
 
 function MenueOverlay:draw()
+
+	local function isActive(n)
+		if n == self.active then
+			term.setTextColor(config "tc_button_active")
+			term.setBackgroundColor(config "bgc_button_active")
+		else
+			term.setTextColor(config "tc_button_normal")
+			term.setBackgroundColor(config "bgc_button_normal")
+		end
+	end
+	Player.setToolbarTheme()
+	
+	local x1r = Screen.w/2 - self.width/2
+	local x1 = math.floor(x1r)
+	local x2 = math.ceil(x1r + self.width - 1)
+	
+	local y1 = math.floor(Screen.h/2 - self.height/2)
+	local y2 = y1 + self.height
+	
+	Screen.clearRect(x1, y1, x2, y2)
+	
+	Screen.clearLine(y1, x1, x2, config "tc_windowtitle", config "bgc_windowtitle")
+	term.setCursorPos(Screen.getCentredX("Menue"), y1)
+	term.write("Menue")
+	
+	term.setBackgroundColor(config "bgc_window")
+	term.setTextColor(config "tc_window")
+	term.setCursorPos(Screen.getCentredX("[save]"), y1 + 2)
+	isActive(1)
+	term.write("[save]")
+	term.setCursorPos(Screen.getCentredX("[quit]"), y1 + 3)
+	isActive(2)
+	term.write("[exit]")
+	term.setCursorPos(Screen.getCentredX("[exit]"), y1 + 4)
+	isActive(3)
+	term.write("[back]")
+	
+	if self.active == 1 then
+		self.player.game.world:save()
+		self.player:resetOverlays()
+	elseif self.active == 2 then
+		Villages.instance:exit()
+	elseif self.active == 3 then
+		self.player:resetOverlays()
+	end
+end
+
+function MenueOverlay:onLeftMouseClick(e)
+	local x1r = Screen.w/2 - self.width/2
+	local x1 = math.floor(x1r)
+	local x2 = math.ceil(x1r + self.width - 1)
+	
+	local y1 = math.floor(Screen.h/2 - self.height/2)
+	local y2 = y1 + self.height
+	
+	local x, y = e:getCoords()
+	
+	if y == y1 + 2 and x >= Screen.getCentredX("[save]") and x < Screen.getCentredX("[save]") + 6 then
+		if self.active == 0 then
+			self.active = 1
+		end
+	elseif y == y1 + 3 and x >= Screen.getCentredX("[exit]") and x < Screen.getCentredX("[exit]") + 6 then
+		if self.active == 0 then
+			self.active = 2
+		end
+	elseif y == y1 + 4 and x >= Screen.getCentredX("[back]") and x < Screen.getCentredX("[back]") + 6 then
+		if self.active == 0 then
+			self.active = 3
+		end
+	else
+		self.player:resetOverlays()
+	end
 end
 
 function MenueOverlay:init(p)
@@ -259,10 +411,9 @@ function BuildingOverlay:reset()
 	self.active = 0
 end
 
-function BuildingOverlay:onClick(e)
-	local but = e:getDetail(1)
-	local x = e:getDetail(2)
-	local y = e:getDetail(3)
+function BuildingOverlay:onLeftMouseClick(e)
+	local x = e:getX()
+	local y = e:getY()
 	local sub = self.submenues[self.categories[self.active]]
 	if y > 1 and y <= 1 + self.maxy and x > self.w - self.maxx - 2 then
 		if self.active == y - 1 then
@@ -270,13 +421,14 @@ function BuildingOverlay:onClick(e)
 		else
 			self.active = y - 1
 		end
-	elseif y > self.active and y <= self.active + sub.maxy and x >= Screen.w - self.maxx - 2 - sub.maxx and x < Screen.w - self.maxx - 2 then
-		log "in sub"
+	elseif self.active ~= 0 and y > self.active and y <= self.active + sub.maxy and x >= Screen.w - self.maxx - 2 - sub.maxx and x < Screen.w - self.maxx - 2 then
 		local suby = y - self.active
 		local element = sub[suby]
 		self.player:setPlacementElement(element)
 		self.player:setPlacing(1)
-		self.player:toggleOverlay(BuildingOverlay)
+		self.player:resetOverlays()
+	else
+		self.player:resetOverlays()
 	end
 end
 
@@ -285,22 +437,22 @@ function BuildingOverlay:draw()
 	Screen.clearRect(Screen.w - self.maxx - 2, 2, Screen.w, 1 + self.maxy)
 	for a = 1, self.maxy do
 		if self.active == a then
-			term.setBackgroundColor(self.backgroundcolorMenuepointActive)
-			term.setTextColor(self.textcolorMenuepointActive)
+			term.setBackgroundColor(config "bgc_menuepoint_active")
+			term.setTextColor(config "tc_menuepoint_active")
 			term.setCursorPos(Screen.w - self.maxx - 2, a + 1)
 			term.write((" "):rep(self.maxx + 3))
 		else
-			term.setBackgroundColor(self.backgroundcolorMenuepointNormal)
-			term.setTextColor(self.textcolorMenuepointNormal)
+			term.setBackgroundColor(config "bgc_menuepoint_normal")
+			term.setTextColor(config "tc_menuepoint_normal")
 		end
 		
 		term.setCursorPos(Screen.w - self.maxx - 2, a + 1)
 		term.write("<")
 	
 		if self.active == a then
-			term.setTextColor(self.textcolorMenuepointActive)
+			term.setTextColor(config "tc_menuepoint_active")
 		else
-			term.setTextColor(self.textcolorMenuepointNormal)
+			term.setTextColor(config "tc_menuepoint_normal")
 		end
 		
 		term.setCursorPos(Screen.w - self.maxx, a + 1)
@@ -309,8 +461,8 @@ function BuildingOverlay:draw()
 		if self.active == a then
 			local sub = self.submenues[self.categories[self.active]]
 			local subbegin = Screen.w - self.maxx - 2 - sub.maxx
-			term.setBackgroundColor(self.backgroundcolorMenuepointNormal)
-			term.setTextColor(self.textcolorMenuepointNormal)
+			term.setBackgroundColor(config "bgc_menuepoint_normal")
+			term.setTextColor(config "tc_menuepoint_normal")
 			Screen.clearRect(subbegin, 2 + self.active - 1, Screen.w - self.maxx - 3, sub.maxy + self.active)
 			for a = 1, #sub do
 				term.setCursorPos(subbegin, a + self.active)
@@ -351,9 +503,6 @@ function BuildingOverlay:init(p)
 end
 
 class "ActionOverlay" : extend "Overlay" {}
-
-function ActionOverlay:onClick(e)
-end
 
 function ActionOverlay:draw()
 end

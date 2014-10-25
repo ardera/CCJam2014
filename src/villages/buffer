@@ -168,7 +168,9 @@ function buffer.getCursorPos (self)
 end
 ---------------------------------------------------------------------
 function buffer.setCursorPos (self, x, y)
-    self.nCursorX = math.floor (x) or self.nCursorX
+    if not x then error("no x", 2) end
+	if not y then error("no y", 2) end
+	self.nCursorX = math.floor (x) or self.nCursorX
     self.nCursorY = math.floor (y) or self.nCursorY
 
     return self
@@ -179,12 +181,18 @@ function buffer.isColor (self)
 end
 ---------------------------------------------------------------------
 function buffer.setTextColor (self, nTextColor)
+	if not nTextColor then
+		error("no textcolor", 2)
+	end
     self.sTextColor = string.format ("%x", math.log (nTextColor) / math.log (2)) or self.sTextColor
     return self
 end
 ---------------------------------------------------------------------
 function buffer.setBackgroundColor (self, nBackColor)
-    self.sBackColor = string.format ("%x", math.log (nBackColor) / math.log (2)) or self.sBackColor
+    if not nBackColor then
+		error("", 2)
+	end
+	self.sBackColor = string.format ("%x", math.log (nBackColor) / math.log (2)) or self.sBackColor
     return self
 end
 ---------------------------------------------------------------------

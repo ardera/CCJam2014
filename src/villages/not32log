@@ -1,5 +1,5 @@
 local toclear = {}
-
+local notifications = {}
 function class(name)
 	local cl = 0
 	cl = {__parent = "Object", __members = {}, __name = name, __origin = name, __originparent = "Object",
@@ -16,6 +16,11 @@ function class(name)
 		end
 		return true
 	end}
+	if name == "Object" then
+		cl.__parent = nil
+		cl.__originparent = nil
+	end
+	setmetatable(cl.__members, {__index = _G[cl.__originparent]})
 	local cl_mt = {
 		__call = function(this, ...)
 			-- new instance
@@ -59,6 +64,9 @@ function class(name)
 			end
 						-- track down parents
 			applyClass(cl)
+			if rawget(cl.__members, "__init") then
+				return instance:__init(...)
+			end
 			if instance.init then
 				instance:init(...)
 			end
@@ -76,6 +84,15 @@ function class(name)
 	
 	setmetatable(cl, cl_mt)
 	
+	local notify_t = {
+		notify = function(s, o, ...)
+			if _G[o] then
+				_G[o].notification(Notification(cl, ...))
+			end
+			return notify_t
+		end
+	}
+	
 	local def_mt = {
 		__call = function(this, arg1)
 			-- define the class / publish it
@@ -86,6 +103,7 @@ function class(name)
 			end
 			_G[name] = cl
 			toclear[#toclear + 1] = name
+			return notify_t
 		end
 	}
 	
@@ -126,7 +144,35 @@ function check(c, ...)
 	error("Wrong Argument Type: Is: " .. tostring((c or {}).__origin) .. " Should Be: " .. table.concat(should, " / "), 2)
 end
 
+class "Object" {}
+function Object.notification(n) end
 
+class "Notification" {}
+function Notification:getSender()
+	return self.sender
+end
+function Notification:getDetails()
+	return self.details
+end
+function Notification:getDetail(n)
+	return self.details[n]
+end
+function Notification:check(n, ...)
+	local vargs = {...}
+	local ok, err = pcall(function() check(self.details[n], unpack(vargs)) end)
+	return ok
+end
+
+function Notification:checkSender(...)
+	local vargs = {...}
+	local ok, err = pcall(function() check(self.sender, unpack(vargs)) end)
+	return ok
+end
+
+function Notification:init(s, ...)
+	self.sender = s
+	self.details = {...}
+end
 
 --class "Test" {Hey = "Hey"}
 --class "SpecificTest" : extend "Test" {}

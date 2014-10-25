@@ -53,6 +53,7 @@ end
 class "Worldelement" {
 	name = "Worldelement",
 	color = colors.white,
+	tcolor = colors.gray,
 	char = " ",
 	mouseaction = Screen(),
 	hasaction = false,
@@ -65,6 +66,10 @@ end
 
 function Worldelement:getColor()
 	return self.color
+end
+
+function Worldelement:getTextColor()
+	return self.tcolor
 end
 
 function Worldelement:getChar()
@@ -117,7 +122,7 @@ class "WorldelementStone" : extend "Worldelement" {
 
 class "WorldelementMachine" : extend "Worldelement" {
 	name = "Machine",
-	color = colors.gray,
+	color = colors.lightGray,
 	char = "#",
 	category = ElementcategoryIndustry
 }
