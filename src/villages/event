@@ -1,12 +1,14 @@
 class "Event" {
 	MouseClick = "mouse_click",
 	MouseScroll = "mouse_scroll",
+	MouseDrag = "mouse_drag",
 	Key = "key",
 	Char = "char",
 	Timer = "timer",
 	ScreenInitialization = "screen_initialization"
 }
 local ename_to_class = {}
+local lastclick = {}
 
 function Event.notification(n)
 	if n:checkSender(AbstractEvent) then
@@ -15,7 +17,13 @@ function Event.notification(n)
 end
 
 function Event.pull(filter)
-	return Event(os.pullEvent(filter))
+	local e = Event(os.pullEvent(filter))
+	if e:is(Event.MouseClick) then
+		lastclick[e:getButton()] = e
+	elseif e:is(Event.MouseDrag) then
+		e:setClickEvent(lastclick[e:getButton()])
+	end
+	return e
 end
 
 function Event.queue(event)	-- static method works for static queueing and instanced queueing, so Event.queue(ev) == ev:queue()
@@ -72,7 +80,6 @@ end
 
 class "TimerEvent" : extend "AbstractEvent" { name = "timer" } : notify "Event"
 function TimerEvent:getTime() return self:getDetail(1) end
---ename_to_class["timer"] = TimerEvent
 class "MouseClickEvent" : extend "AbstractEvent" { name = "mouse_click" } : notify "Event"
 function MouseClickEvent:getButton() return self:getDetail(1) end
 function MouseClickEvent:getX() return self:getDetail(2) end
@@ -80,7 +87,29 @@ function MouseClickEvent:getY() return self:getDetail(3) end
 function MouseClickEvent:isLeftButton() return self:getButton() == 1 end
 function MouseClickEvent:isRightButton() return self:getButton() == 2 end
 function MouseClickEvent:getCoords() return self:getX(), self:getY() end
---ename_to_class["mouse_click"] = MouseClickEvent
+class "MouseDragEvent" : extend "AbstractEvent" { name = "mouse_drag" } : notify "Event"
+function MouseDragEvent:getButton() return self:getDetail(1) end
+function MouseDragEvent:getX() return self:getDetail(2) end
+function MouseDragEvent:getY() return self:getDetail(3) end
+function MouseDragEvent:isLeftButton() return self:getButton() == 1 end
+function MouseDragEvent:isRightButton() return self:getButton() == 2 end
+function MouseDragEvent:getCoords() return self:getX(), self:getY() end
+function MouseDragEvent:getClickEvent() return self.clickevent end
+function MouseDragEvent:setClickEvent(e)
+	self.clickevent = e 
+	self.direction = 0 -- default
+	if self:getX() == e:getX() and self:getY() < e:getY() then
+		self.direction = 1 -- up
+	elseif self:getX() > e:getX() and self:getY() == e:getY() then
+		self.direction = 2 -- right
+	elseif self:getX() == e:getX() and self:getY() > e:getY() then
+		self.direction = 3 -- down
+	elseif self:getX() < e:getX() and self:getY() == e:getY() then
+		self.direction = 4 -- left
+	end
+end
+function MouseDragEvent:getDirection() return self.direction end
+function MouseDragEvent:init(...) self.super(...) self.direction = 0 self.clickevent = nil end
 class "MouseScrollEvent" : extend "AbstractEvent" { name = "mouse_scroll" } : notify "Event"
 function MouseScrollEvent:getScroll() return self:getDetail(1) end
 class "KeyEvent" : extend "AbstractEvent" {name = "key"} : notify "Event"

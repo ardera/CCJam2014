@@ -5,6 +5,7 @@ class "Screen" {
 
 function Screen:draw() end
 function Screen:update(event) end
+function Screen:reset() end
 
 function Screen.setColor(fg, bg)
 	if fg then
@@ -40,11 +41,43 @@ function Screen.combine(...)
 end
 
 function Screen.themedclear()
-	Screen.clear(Villages.config.colortheme.text, Villages.config.colortheme.bg)
+	Screen.clear(config "tc_main", config "bgc_main")
 end
 
 function Screen.getCentredX(str)
-	return math.floor(Screen.w / 2 - #str / 2)
+	return math.ceil(Screen.w / 2) - math.floor(#str / 2)
+end
+
+function Screen.writeCentred(str, l)
+	local x = Screen.getCentredX(str)
+	Screen.setPos(x, l)
+	term.write(str)
+end
+
+function Screen.setPos(x1, y1)
+	local x2, y2 = term.getCursorPos()
+	if x1 and y1 then
+		term.setCursorPos(x1, y1)
+	elseif x1 then
+		term.setCursorPos(x1, y2)
+	elseif y1 then
+		term.setCursorPos(x2, y1)
+	end
+end
+
+function Screen.getPos()
+	return term.getCursorPos()
+end
+
+function Screen.setTheme(n)
+	local t = config("tc_"..n)
+	local b = config("bgc_"..n)
+	if t then
+		term.setTextColor(t)
+	end
+	if b then
+		term.setBackgroundColor(b)
+	end
 end
 
 class "ScreenTest" : extend "Screen" {}

@@ -65,9 +65,17 @@ require "buffer"
 require "bufferwrap"
 require "linkinglibrary"
 
+--[[ -- for debugging purposes (tracking down recursion)
+local function addCallstack(f, n)
+	if n == 0 then
+		return f
+	end
+	log "adding callstack"
+	return addCallstack(function(...) local e = {f(...)} return unpack(e) end, n-1)
+end]]
 
 local m = Villages()
-local ok, err = pcall(function() m:main(gameargs) end)
+local ok, err = pcall(function() m:main(executionpath, gameargs) end)
 
 term.redirect(oldTerm)
 

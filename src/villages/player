@@ -97,7 +97,9 @@ function Player:update(ev)
 		end
 		self.overlay:update(ev)
 	elseif ev:is(Event.MouseScroll) then
-		
+	
+	elseif ev:is(Event.MouseDrag) then
+	
 	elseif ev:is(Event.Char) then
 		local c = ev:getDetail(1)
 		if c == "g" then

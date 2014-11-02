@@ -39,7 +39,7 @@ function World:tick()
 end
 
 function World:save()
-
+	
 end
 
 function World:init(g)

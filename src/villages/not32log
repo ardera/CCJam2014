@@ -36,7 +36,9 @@ function class(name)
 					return true
 				end
 				return false
-			end}
+			end
+			}
+			instance.super = setmetatable({}, {__call = function(s, ...) if instance.super.init then instance.super.init(instance, ...) end end})
 			
 			setmetatable(instance, {__index = function(t, k)
 				if k == "__parent" then
@@ -59,9 +61,13 @@ function class(name)
 				for a, b in pairs(classenv.__members) do
 					if a ~= "__parent" and a ~= "__members" and a ~= "__name" and a ~= " __origin" and a ~= "__orginparent" then
 						instance[a] = b
+						if classenv ~= cl then
+							instance.super[a] = b
+						end
 					end
 				end
 			end
+			
 						-- track down parents
 			applyClass(cl)
 			if rawget(cl.__members, "__init") then

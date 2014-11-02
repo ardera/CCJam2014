@@ -1,35 +1,59 @@
 local defconfig = {}
-defconfig.tc_toolbar = colors.cyan
-defconfig.bgc_toolbar = colors.gray
-	
+defconfig.tc_main = colors.lime
+defconfig.bgc_main = colors.gray
+
+defconfig.tc_mainmenue_version = colors.lightGray
+defconfig.bgc_mainmenue_version = defconfig.bgc_main
+
+defconfig.tc_blackwhite = colors.white
+defconfig.bgc_blackwhite = colors.black
+
+defconfig.tc_mainmenue = colors.lime
+defconfig.bgc_mainmenue = defconfig.bgc_main
+
+defconfig.tc_mainmenue_button_active = colors.orange
+defconfig.bgc_mainmenue_button_active = defconfig.bgc_mainmenue
+defconfig.tc_mainmenue_button_normal = defconfig.tc_mainmenue
+defconfig.bgc_mainmenue_button_normal = defconfig.bgc_mainmenue
+
+
+defconfig.tc_mainmenue_title = colors.lime
+defconfig.bgc_mainmenue_title = defconfig.bgc_main
+
+defconfig.tc_toolbar = defconfig.tc_main
+defconfig.bgc_toolbar = defconfig.bgc_main
+
 defconfig.tc_menue_active = colors.orange
-defconfig.bgc_menue_active = defconfig.bgc_toolbar
-defconfig.tc_menue_normal = defconfig.tc_toolbar
-defconfig.bgc_menue_normal = defconfig.bgc_toolbar
+defconfig.bgc_menue_active = defconfig.bgc_main
+defconfig.tc_menue_normal = defconfig.tc_main
+defconfig.bgc_menue_normal = defconfig.bgc_main
 
 defconfig.tc_menuepoint_active = colors.gray
 defconfig.bgc_menuepoint_active = colors.lightGray
-defconfig.tc_menuepoint_normal = defconfig.tc_toolbar
-defconfig.bgc_menuepoint_normal = defconfig.bgc_toolbar
+defconfig.tc_menuepoint_normal = defconfig.tc_main
+defconfig.bgc_menuepoint_normal = defconfig.bgc_main
 	
 defconfig.tc_windowtitle = defconfig.tc_menuepoint_active
 defconfig.bgc_windowtitle = defconfig.bgc_menuepoint_active
 
-defconfig.tc_window = defconfig.tc_toolbar
-defconfig.bgc_window = defconfig.bgc_toolbar
+defconfig.tc_window = defconfig.tc_main
+defconfig.bgc_window = defconfig.bgc_main
 
-defconfig.tc_button_normal = defconfig.tc_toolbar
-defconfig.bgc_button_normal = defconfig.bgc_toolbar
+defconfig.tc_button_normal = defconfig.tc_main
+defconfig.bgc_button_normal = defconfig.bgc_main
 defconfig.tc_button_active = defconfig.tc_menue_active
 defconfig.bgc_button_active = defconfig.bgc_menue_active
 
 defconfig.tc_grid_1 = colors.cyan
 defconfig.tc_grid_2 = colors.red
 
+defconfig.path_picture_mainmenue_relative = "/data/picture_mainmenue"
+
 class "Villages" {
 	config = defconfig,
 	currentscreen = {},
 	instance = {},
+	version = "0.1",
 	fps = 20					-- more isn't possible
 }
 
@@ -50,9 +74,20 @@ function Villages:update(ev)
 	self.currentscreen:update(ev)
 end
 
-function Villages:main(gameargs)
+function Villages:main(path, gameargs)
 	log "asdf"
 	log "initializing game"
+	
+	
+	
+	self.executionpath = path
+	self.gameargs = gameargs
+	
+	log("executionpath="..tostring(self.executionpath).." path_picture_mainmenue_relative="..tostring(defconfig.path_picture_mainmenue_relative))
+	
+	Villages.config["path_picture_mainmenue"] = fs.combine(self.executionpath, defconfig.path_picture_mainmenue_relative)
+	
+	log("path_picture_mainmenue="..defconfig.path_picture_mainmenue)
 	
 	Villages.instance = self
 	bufferwrap.startup()
@@ -93,5 +128,6 @@ function Villages:exit()
 end
 
 function Villages:setScreen(s)
+	self.currentscreen:reset()
 	self.currentscreen = s
 end

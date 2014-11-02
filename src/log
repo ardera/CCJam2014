@@ -1,12 +1,14 @@
 asdf
 initializing game
-ElementcategoryNature = table: 4da45d2b
-ElementcategoryNature = table: 4da45d2b
-ElementcategoryNature = table: 4da45d2b
-ElementcategoryNature = table: 4da45d2b
-ElementcategoryNature = table: 4da45d2b
+executionpath=/villages/ path_picture_mainmenue_relative=/data/picture_mainmenue
+path_picture_mainmenue=villages/data/picture_mainmenue
+ElementcategoryNature = table: 692ef3d8
+ElementcategoryNature = table: 692ef3d8
+ElementcategoryNature = table: 692ef3d8
+ElementcategoryNature = table: 692ef3d8
+ElementcategoryNature = table: 692ef3d8
 initializing screen
-maxx = 8
-maxy = 2
-starting game loop
 self.fps=20
+starting game loop
+left mouse button clicked
+left mouse button clicked

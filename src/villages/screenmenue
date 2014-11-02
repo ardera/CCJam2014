@@ -1,10 +1,74 @@
 class "ScreenMenue" : extend "Screen" {}
 
+function ScreenMenue:reset()
+	self.active = 0
+end
+
 function ScreenMenue:draw()
-	Screen.themedclear()
+	local function isActive(n)
+		if self.active == n then
+			Screen.setTheme("mainmenue_button_active")
+		else
+			Screen.setTheme("mainmenue_button_normal")
+		end
+	end
+
+	Screen.setTheme("mainmenue")
+	Screen.clear()
 	
+	paintutils.drawImage(self.p, 1, 1)
+	
+	Screen.setTheme("mainmenue_version")
+	term.setCursorPos(1, 1)
+	term.write("v"..Villages.version)
+	isActive(1)
+	Screen.writeCentred("] Load Game [", 2)
+	isActive(2)
+	Screen.writeCentred("] Start New Game [", 3)
+	isActive(3)
+	Screen.writeCentred("] Multiplayer [", 5)
+	isActive(4)
+	Screen.writeCentred("] Options [", 7)
+	isActive(5)
+	Screen.writeCentred("] Quit Game [", 11)
+	
+	if self.active == 1 then
+		self:reset()
+	elseif self.active == 2 then
+		Villages.instance:setScreen(ScreenGame())
+	elseif self.active == 3 then
+		self:reset()
+	elseif self.active == 4 then
+		self:reset()
+	elseif self.active == 5 then
+		Villages.instance:exit()
+	end
 end
 
 function ScreenMenue:update(ev)
-	Villages.instance:setScreen(ScreenGame())
+	if ev:is(Event.MouseClick) and ev:isLeftButton() then
+		log "left mouse button clicked"
+		local x, y = ev:getCoords()
+		local loadgame_s = Screen.getCentredX("] Load Game [")
+		local startnew_s = Screen.getCentredX("] Start New Game [")
+		local multiplayer_s = Screen.getCentredX("] Multiplayer [")
+		local options_s = Screen.getCentredX("] Options [")
+		local quit_s = Screen.getCentredX("] Quit Game [")
+		if y == 2 and x >= loadgame_s and x < loadgame_s + 13 and self.active == 0 then
+			self.active = 1
+		elseif y == 3 and x >= startnew_s and x < startnew_s + 18 and self.active == 0 then
+			self.active = 2
+		elseif y == 5 and x >= multiplayer_s and x < multiplayer_s + 15 and self.active == 0 then
+			self.active = 3
+		elseif y == 7 and x >= options_s and x < options_s + 11 and self.active == 0 then
+			self.active = 4
+		elseif y == 11 and x >= quit_s and x < quit_s + 13 and self.active == 0 then
+			self.active = 5
+		end
+	end
+end
+
+function ScreenMenue:init()
+	self.p = paintutils.loadImage(config "path_picture_mainmenue")
+	self.active = 0
 end
